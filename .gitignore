@@ -1,0 +1,31 @@
+#Gitignore all files that aren't needed
+#on the repo to run the gradle project
+
+#Eclipse project files
+/bin/
+/.settings/
+
+.project
+.classpath
+
+#IntelliJ Project Files
+*.iml
+/.idea/
+*/out/
+
+
+#Gradle.gitignore (https://github.com/github/gitignore/blob/master/Gradle.gitignore)
+.gradle
+/build/
+
+# Ignore Gradle GUI config
+gradle-app.setting
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+
+# Cache of project
+.gradletasknamecache
+
+# # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
+# gradle/wrapper/gradle-wrapper.properties
