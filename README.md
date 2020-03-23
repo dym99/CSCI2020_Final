@@ -4,9 +4,13 @@
 
 ### Group members
 Dylan Moore - *dym99*
+
 Victor Zhang - *vzru*
+
 Jakob Anderson - *HowDoesOneMath*
+
 John Wang - *Wingxvii*
+
 Sukhpreet Bansal - **
 
 ---
