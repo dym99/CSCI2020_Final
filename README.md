@@ -1,4 +1,4 @@
-#CSCI 2020 Final Project
+# CSCI 2020 Final Project
 #### [https://github.com/dym99/CSCI2020_Final](https://github.com/dym99/CSCI2020_Final)
 ---
 
