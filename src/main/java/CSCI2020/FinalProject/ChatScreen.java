@@ -3,7 +3,6 @@ package CSCI2020.FinalProject;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
-<<<<<<< HEAD
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -11,22 +10,17 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 import javax.swing.*;
-=======
-import javafx.scene.control.Button;
-import javafx.scene.layout.StackPane;
->>>>>>> master
 
 public class ChatScreen {
 	TextField inputText;
 	VBox chatBox;
 	boolean atBottom = true;
-    boolean pressedOnce = false;
-    int chatHeight = 300;
+	boolean pressedOnce = false;
+	int chatHeight = 300;
 
 	public ChatScreen() {
-		
+
 		//Root node
-<<<<<<< HEAD
 		VBox root = new VBox();
 
 		ScrollPane sp = new ScrollPane();
@@ -78,17 +72,6 @@ public class ChatScreen {
 
 		root.getChildren().add(inputText);
 
-=======
-		StackPane root = new StackPane();
-		
-		root.setPrefSize(640.0d, 480.0d);
-		
-		
-		Button doNothingButton = new Button("Do Nothing");
-		
-		root.getChildren().add(doNothingButton);
-		
->>>>>>> master
 		//Initialise the scene
 		m_scene = new Scene(root);
 	}
@@ -98,7 +81,7 @@ public class ChatScreen {
 		return m_scene;
 	}
 
-	
+
 	//Getter and setter for username
 	public void setUsername(String _username) {
 		m_username = _username;
@@ -110,10 +93,10 @@ public class ChatScreen {
 	//
 	// Private variables for the scene.
 	//
-	
+
 	//The scene for the chat screen
 	private Scene m_scene;
-	
-	
+
+
 	private String m_username;
 }
