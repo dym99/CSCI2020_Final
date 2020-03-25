@@ -23,4 +23,4 @@ sourceSets {
         }
 }
 
-mainClassName = 'MainClass'
+mainClassName = 'CSCI2020.FinalProject.MainClass'
