@@ -3,6 +3,7 @@ package CSCI2020.FinalProject;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
+<<<<<<< HEAD
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -10,6 +11,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 import javax.swing.*;
+=======
+import javafx.scene.control.Button;
+import javafx.scene.layout.StackPane;
+>>>>>>> master
 
 public class ChatScreen {
 	TextField inputText;
@@ -21,6 +26,7 @@ public class ChatScreen {
 	public ChatScreen() {
 		
 		//Root node
+<<<<<<< HEAD
 		VBox root = new VBox();
 
 		ScrollPane sp = new ScrollPane();
@@ -72,6 +78,17 @@ public class ChatScreen {
 
 		root.getChildren().add(inputText);
 
+=======
+		StackPane root = new StackPane();
+		
+		root.setPrefSize(640.0d, 480.0d);
+		
+		
+		Button doNothingButton = new Button("Do Nothing");
+		
+		root.getChildren().add(doNothingButton);
+		
+>>>>>>> master
 		//Initialise the scene
 		m_scene = new Scene(root);
 	}
