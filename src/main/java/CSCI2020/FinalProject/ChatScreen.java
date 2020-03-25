@@ -1,15 +1,22 @@
 package CSCI2020.FinalProject;
 
 import javafx.scene.Scene;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.Button;
+import javafx.scene.layout.StackPane;
 
 public class ChatScreen {
 	
 	public ChatScreen() {
 		
 		//Root node
-		VBox root = new VBox();
+		StackPane root = new StackPane();
 		
+		root.setPrefSize(640.0d, 480.0d);
+		
+		
+		Button doNothingButton = new Button("Do Nothing");
+		
+		root.getChildren().add(doNothingButton);
 		
 		//Initialise the scene
 		m_scene = new Scene(root);
