@@ -11,8 +11,9 @@ import javafx.stage.Stage;
 
 public class LoginScreen {	
 	
-	public LoginScreen(Stage _stage) {
+	public LoginScreen(Stage _stage, ChatScreen _nextScene) {
 		m_stage = _stage;
+		m_nextScene = _nextScene;
 		
 		//The root node
 		VBox root = new VBox();
@@ -32,9 +33,8 @@ public class LoginScreen {
 		
 		m_loginButton.setOnAction(e -> {
 			//TODO: Login
-			ChatScreen chatScene = new ChatScreen(m_usernameField.getText());
-			
-			m_stage.setScene(chatScene.getScene());
+			m_nextScene.setUsername(m_usernameField.getText());
+			m_stage.setScene(m_nextScene.getScene());
 		});
 		
 		//Add all the form elements to the grid pane.
@@ -62,6 +62,8 @@ public class LoginScreen {
 	//Store reference to the stage
 	private Stage m_stage;
 	
+	//Store reference to the next scene
+	private ChatScreen m_nextScene;
 	
 	//
 	// Private variables for the scene.

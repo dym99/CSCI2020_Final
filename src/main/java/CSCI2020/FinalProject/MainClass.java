@@ -14,7 +14,9 @@ public class MainClass extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		
-		LoginScreen loginScreen = new LoginScreen(primaryStage);
+		ChatScreen chatScreen = new ChatScreen();
+		
+		LoginScreen loginScreen = new LoginScreen(primaryStage, chatScreen);
 
 		
 		primaryStage.setScene(loginScreen.getScene());

@@ -5,8 +5,7 @@ import javafx.scene.layout.VBox;
 
 public class ChatScreen {
 	
-	public ChatScreen(String _username) {
-		m_username = _username;
+	public ChatScreen() {
 		
 		//Root node
 		VBox root = new VBox();
@@ -21,6 +20,14 @@ public class ChatScreen {
 		return m_scene;
 	}
 
+	
+	//Getter and setter for username
+	public void setUsername(String _username) {
+		m_username = _username;
+	}
+	public String getUsername() {
+		return m_username;
+	}
 
 	//
 	// Private variables for the scene.
