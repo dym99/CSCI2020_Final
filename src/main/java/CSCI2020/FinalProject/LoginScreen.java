@@ -12,8 +12,8 @@ import javafx.stage.Stage;
 public class LoginScreen {	
 	
 	public LoginScreen(Stage _stage, ChatScreen _nextScene) {
-		m_stage = _stage;
-		m_nextScene = _nextScene;
+		stage = _stage;
+		nextScene = _nextScene;
 		
 		//The root node
 		VBox root = new VBox();
@@ -26,58 +26,58 @@ public class LoginScreen {
 		Label addressLabel = new Label("Server Address: "); 
 		
 		//Initialise form elements.
-		m_usernameField = new TextField();
-		m_serverAddressField = new TextField();
+		usernameField = new TextField();
+		serverAddressField = new TextField();
 
-		m_loginButton = new Button("Login");
+		loginButton = new Button("Login");
 		
-		m_loginButton.setOnAction(e -> {
+		loginButton.setOnAction(e -> {
 			//TODO: Login
-			m_nextScene.setUsername(m_usernameField.getText());
-			m_stage.setScene(m_nextScene.getScene());
+			nextScene.setUsername(usernameField.getText());
+			stage.setScene(nextScene.getScene());
 		});
 		
 		//Add all the form elements to the grid pane.
 		gPane.add(usernameLabel, 0, 0);
 		gPane.add(addressLabel, 0, 1);
 
-		gPane.add(m_usernameField, 1, 0);
-		gPane.add(m_serverAddressField, 1, 1);
+		gPane.add(usernameField, 1, 0);
+		gPane.add(serverAddressField, 1, 1);
 		
-		gPane.add(m_loginButton, 1, 2);
+		gPane.add(loginButton, 1, 2);
 		
 		//Add padding to the grid pane
 		gPane.setPadding(new Insets(48.0d));
 		
 		root.getChildren().add(gPane);
 		
-		m_scene = new Scene(root);
+		scene = new Scene(root);
 	}
 
 	//Getter for the scene for the login screen
 	public Scene getScene() {
-		return m_scene;
+		return scene;
 	}
 	
 	//Store reference to the stage
-	private Stage m_stage;
+	private Stage stage;
 	
 	//Store reference to the next scene
-	private ChatScreen m_nextScene;
+	private ChatScreen nextScene;
 	
 	//
 	// Private variables for the scene.
 	//
 	
 	//The scene for the login screen
-	private Scene m_scene;
+	private Scene scene;
 
 	//Username to login with
-	private TextField m_usernameField;
+	private TextField usernameField;
 	
 	//Address to connect to
-	private TextField m_serverAddressField;
+	private TextField serverAddressField;
 	
 	//Login button
-	private Button m_loginButton;
+	private Button loginButton;
 }
