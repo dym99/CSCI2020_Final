@@ -16,8 +16,12 @@ public class ActiveUser {
 
     Pane parent;
 
-    public ActiveUser(Pane _parent, String name)
+    String socketIP;
+
+    public ActiveUser(Pane _parent, String name, String sockAddr)
     {
+        socketIP = sockAddr;
+
         username = new Text();
         userBox = new VBox();
 
@@ -31,13 +35,22 @@ public class ActiveUser {
         });
     }
 
+    public String GetSocketIP()
+    {
+        return socketIP;
+    }
+
     public void UpdateUsername(String name)
     {
-        username.setText(name);
+        Platform.runLater( () -> {
+            username.setText(name);
+        });
     }
 
     public void Cleanup() //pseudo destructor
     {
-        parent.getChildren().remove(userBox);
+        Platform.runLater( () -> {
+            parent.getChildren().remove(userBox);
+        });
     }
 }

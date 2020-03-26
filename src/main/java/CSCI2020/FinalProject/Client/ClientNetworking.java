@@ -56,7 +56,9 @@ public class ClientNetworking {
 			} catch (SocketException se) {
 				System.out.println("Server has kicked you!");
 
-				chatScreen.disconnectClient();
+				Platform.runLater(()->{
+					chatScreen.disconnectClient();
+				});
 
 				return "";
 			} catch (EOFException e) {

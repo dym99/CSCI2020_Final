@@ -1,5 +1,6 @@
 package CSCI2020.FinalProject.Client;
 
+import CSCI2020.FinalProject.Server.ActiveUser;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -8,11 +9,19 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
+
 public class ChatScreen {
+	VBox userBox;
+	VBox allUsers;
+
+	ArrayList<ActiveUser> activeUsers;
+
 	static void ShutDown()
 	{
 		System.exit(0);
@@ -23,7 +32,21 @@ public class ChatScreen {
 		stage = _stage;
 		
 		//Root node
-		VBox root = new VBox();
+		HBox root = new HBox();
+		VBox mainChat = new VBox();
+		root.getChildren().add(mainChat);
+
+		//Scroll pane for viewing users
+		ScrollPane userList = new ScrollPane();
+		userList.setPrefWidth(200);
+		userBox = new VBox();
+		allUsers = new VBox();
+		userBox.getChildren().add(new Text("ACTIVE USERS: "));
+		userBox.getChildren().add(allUsers);
+		userList.setContent(userBox);
+		root.getChildren().add(userList);
+
+		activeUsers = new ArrayList<>();
 
 		//Scroll pane for viewing chat log
 		sp = new ScrollPane();
@@ -35,7 +58,7 @@ public class ChatScreen {
 			disconnectClient();
 		});
 
-		root.getChildren().add(sp);
+		mainChat.getChildren().add(sp);
 
 		chatBox = new VBox();
 		sp.setContent(chatBox);
@@ -71,9 +94,9 @@ public class ChatScreen {
 			}
 		});
 
-		root.getChildren().add(inputText);
+		mainChat.getChildren().add(inputText);
 
-		root.getChildren().add(backButton);
+		mainChat.getChildren().add(backButton);
 
 		//Initialise the scene
 		scene = new Scene(root);
@@ -96,14 +119,52 @@ public class ChatScreen {
 					if (message.equals("/disconnect")) {
 						
 					}
-					//Update the chat text box's status and print the message.
-					atBottom = true;
-					if (sp.getVvalue() < 1 && chatBox.getHeight() >= sp.getHeight()) {
-						atBottom = false;
+
+					else if (message.startsWith("/includeUsers"))
+					{
+						String[] split = message.split("@");
+						for (int i = 1; i < split.length; i += 2)
+						{
+							activeUsers.add(new ActiveUser(allUsers, split[i + 1], split[i]));
+						}
 					}
-					Platform.runLater(()->{
-						chatBox.getChildren().add(new Text(message));
-					});
+
+					else if (message.startsWith("/updateUser"))
+					{
+						String[] split = message.split("@");
+
+						for (int i = 0; i < activeUsers.size(); ++i)
+						{
+							if (activeUsers.get(i).GetSocketIP().equals(split[1]))
+							{
+								activeUsers.get(i).UpdateUsername(split[2]);
+							}
+						}
+					}
+
+					else if (message.startsWith("/removeUser"))
+					{
+						String[] split = message.split("@");
+						for (int i = activeUsers.size() - 1; i >= 0; --i)
+						{
+							if (activeUsers.get(i).GetSocketIP().equals(split[1]))
+							{
+								activeUsers.get(i).Cleanup();
+								activeUsers.remove(i);
+							}
+						}
+					}
+
+					else if (!message.startsWith("/")) {
+						//Update the chat text box's status and print the message.
+						atBottom = true;
+						if (sp.getVvalue() < 1 && chatBox.getHeight() >= sp.getHeight()) {
+							atBottom = false;
+						}
+						Platform.runLater(() -> {
+							chatBox.getChildren().add(new Text(message));
+						});
+					}
 				}
 			}
 		}).start();
@@ -122,6 +183,15 @@ public class ChatScreen {
 		
 		//Stop the networking thread. (For receiving messages)
 		endNetThread();
+
+		//Cleanup clients and messages
+		for (int i = activeUsers.size() - 1; i >= 0; --i)
+		{
+			activeUsers.get(i).Cleanup();
+		}
+
+		chatBox.getChildren().clear();
+		activeUsers.clear();
 		
 		//Return to login screen
 		if (loginScreen!=null) {

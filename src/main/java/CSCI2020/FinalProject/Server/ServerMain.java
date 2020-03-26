@@ -103,12 +103,14 @@ public class ServerMain extends Application {
 				while (true) {
 					//Accept an incoming TCP connection
 					Socket clientSocket = serverSocket.accept();
-					
+
 					Platform.runLater( () -> {
 						serverLog.getChildren().add(new Text(
 										String.format("[%s] Client connected.\n", clientSocket.getInetAddress().getHostAddress())
 										));
 	                });
+
+					distributeMessage("/includeUsers@" + clientSocket.getRemoteSocketAddress().toString() + "@ ");
 					
 					//Add client to client list and begin processing socket I/O
 					HandleClient client = new HandleClient(clientSocket, this, allUsers);
@@ -187,7 +189,7 @@ public class ServerMain extends Application {
 			socket = _socket;
 			server = _server;
 			messagesToSend = new LinkedList<String>();
-			activeUser = new ActiveUser(users, username);
+			activeUser = new ActiveUser(users, username, _socket.getRemoteSocketAddress().toString());
 		}
 		
 		//Serve the client
@@ -197,6 +199,17 @@ public class ServerMain extends Application {
 				//Streams for communicating with client.
 				DataInputStream inputFromClient = new DataInputStream(socket.getInputStream());
 				DataOutputStream outputToClient = new DataOutputStream(socket.getOutputStream());
+
+				String allUserNames = "/includeUsers";
+				for (int i = 0; i < clients.size() - 1; ++i)
+				{
+					allUserNames += ("@" + clients.get(i).activeUser.GetSocketIP() + "@" + clients.get(i).username);
+				}
+
+				allUserNames += ("@" + clients.get(clients.size() - 1).activeUser.GetSocketIP() + "@ ");
+
+				outputToClient.writeUTF(allUserNames);
+				outputToClient.flush();
 
 				//Thread for recieving messages and handling them.
 				new Thread(()->{
@@ -209,6 +222,7 @@ public class ServerMain extends Application {
 							Platform.runLater(()->{
 								serverLog.getChildren().add(new Text(String.format("[%s (%s)] %s\n", socket.getInetAddress().getHostAddress(), username, message)));
 							});
+
 							if (message.startsWith("/name ")) {
 								//Tokenise message
 								String tokens[] = message.split(" ");
@@ -226,8 +240,10 @@ public class ServerMain extends Application {
 									username = name;
 
 									activeUser.UpdateUsername(name);
+
+									distributeMessage("/updateUser@" + activeUser.socketIP + "@" + username);
 								}
-							} else {
+							} else if (!message.startsWith("/")){
 
 								//Recieved a normal chat message.
 								//Distribute it. (message format is "username: message")
@@ -258,7 +274,9 @@ public class ServerMain extends Application {
 								activeUser.Cleanup();
 							});
 
-							break;
+							//break;
+
+
 						} catch (IOException e) {
 							//Print error and break from loop (to end this recieve message thread)
 							System.out.println("Sock error on recieve!\nClient disconnected.");
@@ -269,7 +287,8 @@ public class ServerMain extends Application {
 								clients.remove(this);
 								activeUser.Cleanup();
 							});
-							break;
+
+							//break;
 						}
 
 						if (TerminateThread)
@@ -281,6 +300,7 @@ public class ServerMain extends Application {
 								e.printStackTrace();
 							}
 
+							distributeMessage("/removeUser@" + activeUser.socketIP);
 							break;
 						}
 					}
