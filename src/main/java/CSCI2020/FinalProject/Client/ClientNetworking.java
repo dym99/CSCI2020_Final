@@ -21,7 +21,7 @@ public class ClientNetworking {
 			toServer = new DataOutputStream(socket.getOutputStream());
 			fromServer = new DataInputStream(socket.getInputStream());
 			
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
 		}

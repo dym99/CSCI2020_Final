@@ -29,7 +29,7 @@ public class ChatScreen {
 		sp = new ScrollPane();
 		sp.setPrefSize(600, chatHeight);
 
-		Button backButton = new Button("Back To Login");
+		Button backButton = new Button("Log out");
 
 		backButton.setOnAction(e->{
 			disconnectClient();
