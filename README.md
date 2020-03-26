@@ -11,8 +11,6 @@ Jakob Anderson - *HowDoesOneMath*
 
 John Wang - *Wingxvii*
 
-Sukhpreet Bansal - **
-
 ---
 ### Windows Instructions
 Open a command-line window in the project directory, and run:
