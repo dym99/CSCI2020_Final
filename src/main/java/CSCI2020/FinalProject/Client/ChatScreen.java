@@ -10,6 +10,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 
 public class ChatScreen {
 	static void ShutDown()
@@ -17,8 +18,10 @@ public class ChatScreen {
 		System.exit(0);
 	}
 
-	public ChatScreen() {
-
+	public ChatScreen(Stage _stage) {
+		//Store reference to the stage
+		stage = _stage;
+		
 		//Root node
 		VBox root = new VBox();
 
@@ -29,7 +32,7 @@ public class ChatScreen {
 		Button backButton = new Button("Back To Login");
 
 		backButton.setOnAction(e->{
-			//Return to main menu logic
+			disconnectClient();
 		});
 
 		root.getChildren().add(sp);
@@ -73,46 +76,63 @@ public class ChatScreen {
 		root.getChildren().add(backButton);
 
 		//Initialise the scene
-		m_scene = new Scene(root);
+		scene = new Scene(root);
 		
 		
 	}
 
 	
-	//Thread to recieve all incoming messages.
+	//Thread to receive all incoming messages.
 	public void runNetThread() {
+		shouldEndNetThread = false;
 		new Thread(()->{
-			while (true) {
+			while (!shouldEndNetThread) {
 				//Recieve incoming messages
 				String message = ClientNetworking.Recv();
 				
-				Platform.runLater(()->{
-				chatBox.getChildren().add(new Text(String.format("%s\r\n", message)));
-				});
 				//If message is recieved successfully...
 				if (!message.equals("")) {
-					//Print it.
+					//If the message is conveying that the server disconnected you:
+					if (message.equals("/disconnect")) {
+						
+					}
+					//Update the chat text box's status and print the message.
 					atBottom = true;
 					if (sp.getVvalue() < 1 && chatBox.getHeight() >= sp.getHeight()) {
 						atBottom = false;
-						Platform.runLater(()->{
-							chatBox.getChildren().add(new Text(message));
-						});
 					}
+					Platform.runLater(()->{
+						chatBox.getChildren().add(new Text(message));
+					});
 				}
 			}
 		}).start();
 	}
+	
+	//End the thread for receiving incoming messages.
+	public void endNetThread() {
+		shouldEndNetThread = true;
+	}
 
 	//Disconnection function
-	public static void DisconnectClient()
+	public void disconnectClient()
 	{
-		//Handle any disconnection logic here.
+		//Disconnect the socket.
+		ClientNetworking.Disconnect();
+		
+		//Stop the networking thread. (For receiving messages)
+		endNetThread();
+		
+		//Return to login screen
+		if (loginScreen!=null) {
+			stage.setScene(loginScreen.getScene());
+		}
+		
 	}
 	
 	//Getter for the scene for the chat screen
 	public Scene getScene() {
-		return m_scene;
+		return scene;
 	}
 
 
@@ -125,12 +145,27 @@ public class ChatScreen {
 		return username;
 	}
 
+	
+	//Getter and setter for a reference to the login screen
+	public LoginScreen getLoginScreen() {
+		return loginScreen;
+	}
+	public void setLoginScreen(LoginScreen _loginScreen) {
+		loginScreen = _loginScreen;
+	}
+	
 	//
 	// Private variables for the scene.
 	//
 
 	//The scene for the chat screen
-	private Scene m_scene;
+	private Scene scene;
+	
+	//A reference to the primary stage
+	private Stage stage;
+	
+	//A reference to the login screen (to return to login on disconnect)
+	private LoginScreen loginScreen;
 
 	//Input field for the user's text.
 	TextField inputText;
@@ -145,6 +180,9 @@ public class ChatScreen {
 	boolean atBottom = true;
 	boolean pressedOnce = false;
 	int chatHeight = 300;
+	
+	//Variable to manage closing the networking thread.
+	boolean shouldEndNetThread = false;
 	
 	//This client's username
 	private String username;

@@ -43,6 +43,7 @@ public class LoginScreen {
 					//Connected. Go to next scene.
 					nextScene.setUsername(username);
 					nextScene.runNetThread();
+					nextScene.setLoginScreen(this);
 					stage.setScene(nextScene.getScene());
 					
 				} else {

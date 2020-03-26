@@ -261,8 +261,14 @@ public class ServerMain extends Application {
 							break;
 						} catch (IOException e) {
 							//Print error and break from loop (to end this recieve message thread)
-							System.out.println("Sock error on recieve!\n");
-							e.printStackTrace();
+							System.out.println("Sock error on recieve!\nClient disconnected.");
+
+							TerminateThread = true;
+							
+							Platform.runLater(()-> {
+								clients.remove(this);
+								activeUser.Cleanup();
+							});
 							break;
 						}
 
