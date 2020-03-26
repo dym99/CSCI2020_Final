@@ -12,7 +12,11 @@ public class MainClass extends Application {
 		
 		LoginScreen loginScreen = new LoginScreen(primaryStage, chatScreen);
 
-		
+		primaryStage.setOnCloseRequest(e-> {
+			System.out.println("Trying to shut down...");
+			ChatScreen.ShutDown();
+		});
+
 		primaryStage.setScene(loginScreen.getScene());
 		primaryStage.show();
 	}

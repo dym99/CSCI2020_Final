@@ -1,12 +1,9 @@
 package CSCI2020.FinalProject.Server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -21,6 +18,10 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class ServerMain extends Application {
+	static void ShutDown()
+	{
+		System.exit(0);
+	}
 
 	File file;
 	public void start(Stage primaryStage) {
@@ -33,7 +34,7 @@ public class ServerMain extends Application {
 		//Keeping append as 'true' will not erase the data of previous sessions
 
 		LogData("SESSION BEGINS: " +
-				java.time.LocalDateTime.now(), true
+				java.time.LocalDateTime.now(), false
 		);
 
 		//Set up server UI
@@ -65,6 +66,8 @@ public class ServerMain extends Application {
 			LogData("SESSION ENDS: " +
 					java.time.LocalDateTime.now(), true
 			);
+
+			ShutDown();
 		});
 
 		Scene scene = new Scene(root);
@@ -93,6 +96,11 @@ public class ServerMain extends Application {
 					//Add client to client list and begin processing socket I/O
 					HandleClient client = new HandleClient(clientSocket, this);
 					clients.add(client);
+
+					LogData(" -> USER CONNECTED: " + clientSocket.getRemoteSocketAddress().toString() +
+							java.time.LocalDateTime.now(), true
+					);
+
 					new Thread(client).start();
 				}
 				
@@ -177,6 +185,8 @@ public class ServerMain extends Application {
 					while (true) {
 						try {
 							String message = inputFromClient.readUTF();
+
+							System.out.println(message);
 							
 							Platform.runLater(()->{
 								serverLog.getChildren().add(new Text(String.format("[%s (%s)] %s\n", socket.getInetAddress().getHostAddress(), username, message)));
@@ -191,11 +201,12 @@ public class ServerMain extends Application {
 								}
 								
 								if (!name.equals("")) {
-									username = name;
-
-									LogData(" -> " + username + " JOINED: " +
+									LogData(" -> USER '" + username + "' RENAMED TO '" + name + "'" +
 											java.time.LocalDateTime.now(), true
 									);
+
+									username = name;
+
 								}
 							} else {
 
@@ -207,6 +218,17 @@ public class ServerMain extends Application {
 										": " + username + ": " + message, true
 								);
 							}
+						} catch (SocketException se){
+							//Peaceful disconnection
+							System.out.println("Client disconnection!\n");
+
+							//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
+							//                               //
+							//ANY CLIENT DISCONNECTS GO HERE!//
+							//                               //
+							//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
+
+							break;
 						} catch (IOException e) {
 							//Print error and break from loop (to end this recieve message thread)
 							System.out.println("Sock error on recieve!\n");

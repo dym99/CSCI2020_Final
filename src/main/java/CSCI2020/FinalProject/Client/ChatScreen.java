@@ -11,6 +11,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 public class ChatScreen {
+	static void ShutDown()
+	{
+		System.exit(0);
+	}
 
 	public ChatScreen() {
 
@@ -74,7 +78,7 @@ public class ChatScreen {
 				String message = ClientNetworking.Recv();
 				
 				Platform.runLater(()->{
-				chatBox.getChildren().add(new Text(String.format("Message recieved: %s\r\n", message)));
+				chatBox.getChildren().add(new Text(String.format("%s\r\n", message)));
 				});
 				//If message is recieved successfully...
 				if (!message.equals("")) {
