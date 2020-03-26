@@ -1,5 +1,6 @@
 package CSCI2020.FinalProject.Client;
 
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
@@ -17,7 +18,7 @@ public class ChatScreen {
 		VBox root = new VBox();
 
 		//Scroll pane for viewing chat log
-		ScrollPane sp = new ScrollPane();
+		sp = new ScrollPane();
 		sp.setPrefSize(600, chatHeight);
 
 		root.getChildren().add(sp);
@@ -61,27 +62,35 @@ public class ChatScreen {
 		//Initialise the scene
 		m_scene = new Scene(root);
 		
-		//Thread to recieve all incoming messages.
+		
+	}
+
+	
+	//Thread to recieve all incoming messages.
+	public void runNetThread() {
 		new Thread(()->{
 			while (true) {
 				//Recieve incoming messages
 				String message = ClientNetworking.Recv();
 				
+				Platform.runLater(()->{
+				chatBox.getChildren().add(new Text(String.format("Message recieved: %s\r\n", message)));
+				});
 				//If message is recieved successfully...
 				if (!message.equals("")) {
 					//Print it.
-
 					atBottom = true;
-					if (sp.getVvalue() < 1 && chatBox.getHeight() >= sp.getHeight())
+					if (sp.getVvalue() < 1 && chatBox.getHeight() >= sp.getHeight()) {
 						atBottom = false;
-
-					chatBox.getChildren().add(new Text(message));
-
+						Platform.runLater(()->{
+							chatBox.getChildren().add(new Text(message));
+						});
+					}
 				}
 			}
-		});
+		}).start();
 	}
-
+	
 	//Getter for the scene for the chat screen
 	public Scene getScene() {
 		return m_scene;
@@ -109,6 +118,9 @@ public class ChatScreen {
 	
 	//VBox for scrolling chat log
 	VBox chatBox;
+	
+	//ScrollPane for scrolling chat log
+	ScrollPane sp;
 	
 	//Variables for the scrolling chat log
 	boolean atBottom = true;

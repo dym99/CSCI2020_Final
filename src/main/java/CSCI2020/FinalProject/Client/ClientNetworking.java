@@ -23,6 +23,7 @@ public class ClientNetworking {
 	public static boolean Send(String _message) {
 		try {
 			toServer.writeUTF(_message);
+			toServer.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;
@@ -31,10 +32,19 @@ public class ClientNetworking {
 	}
 	
 	public static String Recv() {
-		try {
-			return fromServer.readUTF(); 
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (fromServer != null) {
+			try {
+				String message = fromServer.readUTF();
+				System.out.println(message);
+				return message;
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.out.println("No message");
+				return "";
+			}
+		} else {
+			System.out.println("fromServer is null");
+			int i = 1/0;
 			return "";
 		}
 	}

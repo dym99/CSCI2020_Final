@@ -1,6 +1,10 @@
 package CSCI2020.FinalProject.Server;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -8,9 +12,12 @@ import java.util.LinkedList;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class ServerMain extends Application {
@@ -31,13 +38,28 @@ public class ServerMain extends Application {
 
 		//Set up server UI
 
-		serverLog = new TextArea();
-		serverLog.setPrefSize(640.0d, 480.0d);
+		//Root node
+		VBox root = new VBox();
+
+		//Scroll pane for viewing chat log
+		ScrollPane scrollPane = new ScrollPane();
+		scrollPane.setPrefSize(600, 480);
+
+		root.getChildren().add(scrollPane);
+
+		serverLog = new VBox();
+		scrollPane.setContent(serverLog);
 		
-		ScrollPane scrollPane = new ScrollPane(serverLog);
-		scrollPane.setMinSize(640.0d, 480.0d);
-		
-		serverLog.autosize();
+		//If the scroll pane is at the bottom when a message is added, keep it at the bottom. 
+		serverLog.heightProperty().addListener(new ChangeListener<Object>() {
+			@Override
+			public void changed(ObservableValue<?> _observable, Object _oldvalue, Object _newValue) {
+				if (atBottom) {
+					scrollPane.setVvalue(1D);
+				}
+			}
+		});
+
 
 		primaryStage.setOnCloseRequest(e->{
 			LogData("SESSION ENDS: " +
@@ -45,11 +67,11 @@ public class ServerMain extends Application {
 			);
 		});
 
-		Scene scene = new Scene(scrollPane);
+		Scene scene = new Scene(root);
 		primaryStage.setScene(scene);
 		primaryStage.show();
 
-		serverLog.appendText("Starting server...\r\n");
+		serverLog.getChildren().add(new Text("Starting server..."));
 		
 		clients = new ArrayList<HandleClient>();
 		
@@ -63,7 +85,9 @@ public class ServerMain extends Application {
 					Socket clientSocket = serverSocket.accept();
 					
 					Platform.runLater( () -> {
-						serverLog.appendText(String.format("[{0}] Client connected.\r\n", clientSocket.getInetAddress().getHostAddress()));
+						serverLog.getChildren().add(new Text(
+										String.format("[%s] Client connected.\n", clientSocket.getInetAddress().getHostAddress())
+										));
 	                });
 					
 					//Add client to client list and begin processing socket I/O
@@ -73,7 +97,7 @@ public class ServerMain extends Application {
 				}
 				
 			} catch (IOException e) {
-				serverLog.appendText("Failed to start server!\r\n");
+				serverLog.getChildren().add(new Text("Failed to start server!\n"));
 				e.printStackTrace();
 			}
 		}).start();
@@ -100,7 +124,15 @@ public class ServerMain extends Application {
 	}
 
 	public void distributeMessage(String _message) {
+
+		Platform.runLater(()->{
+			serverLog.getChildren().add(new Text(String.format("Distributing message to %d clients: %s\n", clients.size(), _message)));
+		});
 		for (HandleClient client : clients) {
+
+			Platform.runLater(()->{
+				serverLog.getChildren().add(new Text("Sending message..."));
+			});	
 			client.enqueueMessage(_message);
 		}
 	}
@@ -108,7 +140,12 @@ public class ServerMain extends Application {
 	//
 	//	Server GUI
 	//
-	TextArea serverLog;
+	public VBox serverLog;
+	
+	//Variables for the scrolling server log
+	boolean atBottom = true;
+	boolean pressedOnce = false;
+	int chatHeight = 300;
 	
 	//
 	//	Client list
@@ -141,8 +178,9 @@ public class ServerMain extends Application {
 						try {
 							String message = inputFromClient.readUTF();
 							
-							serverLog.appendText(String.format("[%s] %s\r\n", socket.getInetAddress().getHostAddress(), message));
-							
+							Platform.runLater(()->{
+								serverLog.getChildren().add(new Text(String.format("[%s (%s)] %s\n", socket.getInetAddress().getHostAddress(), username, message)));
+							});
 							if (message.startsWith("/name ")) {
 								//Tokenise message
 								String tokens[] = message.split(" ");
@@ -151,7 +189,8 @@ public class ServerMain extends Application {
 								for (int i = 1; i < tokens.length; ++i) {
 									name = String.join(name, tokens[i]);
 								}
-								if (!username.equals("")) {
+								
+								if (!name.equals("")) {
 									username = name;
 
 									LogData(" -> " + username + " JOINED: " +
@@ -159,9 +198,10 @@ public class ServerMain extends Application {
 									);
 								}
 							} else {
+
 								//Recieved a normal chat message.
 								//Distribute it. (message format is "username: message")
-								server.distributeMessage(String.format("%s: %s\r\n", username, message));
+								server.distributeMessage(String.format("%s: %s", username, message));
 
 								LogData(java.time.LocalDateTime.now() +
 										": " + username + ": " + message, true
@@ -178,18 +218,38 @@ public class ServerMain extends Application {
 				
 				//Thread for sending messages.
 				new Thread(()->{
+
+					Platform.runLater(()->{
+						serverLog.getChildren().add(new Text("Starting message sending thread."));
+					});
 					while (true) {
 						if (!messagesToSend.isEmpty()) {
-							String message = messagesToSend.poll();
-							try {
-								outputToClient.writeUTF(message);
-								serverLog.appendText("Sent message.\r\n");
-							} catch (IOException e) {
-								//Print error and break from loop (to end this send message thread)
-								System.out.println("Sock error on send!\n");
-								e.printStackTrace();
-								break;
+							Platform.runLater(()->{
+								serverLog.getChildren().add(new Text("Sending message..."));
+							});
+							String message = messagesToSend.remove();
+							if (message!=null) {
+								try {
+									outputToClient.writeUTF(message);
+									outputToClient.flush();
+
+									Platform.runLater(()->{
+										serverLog.getChildren().add(new Text("Sent message."));
+									});
+								} catch (IOException e) {
+									//Print error and break from loop (to end this send message thread)
+
+									Platform.runLater(()->{
+										serverLog.getChildren().add(new Text("Sock error on send!"));
+									});
+									e.printStackTrace();
+									break;
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
 							}
+						} else {
+							System.out.print("");
 						}
 					}
 				}).start();
@@ -203,6 +263,10 @@ public class ServerMain extends Application {
 		//Prepare message to be sent on this thread.
 		public void enqueueMessage(String _message) {
 			messagesToSend.add(_message);
+
+			Platform.runLater(()->{
+				serverLog.getChildren().add(new Text(String.format("Enqueued message to client: %s\n", username)));
+			});
 		}
 		
 		//Retrieve this client's username.

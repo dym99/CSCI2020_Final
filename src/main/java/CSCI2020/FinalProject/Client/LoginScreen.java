@@ -42,6 +42,7 @@ public class LoginScreen {
 				if (ClientNetworking.Connect(serverAddressField.getText(), 8000)) {
 					//Connected. Go to next scene.
 					nextScene.setUsername(username);
+					nextScene.runNetThread();
 					stage.setScene(nextScene.getScene());
 					
 				} else {
