@@ -1,8 +1,6 @@
 package CSCI2020.FinalProject.Server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -16,9 +14,23 @@ import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 
 public class ServerMain extends Application {
+
+	File file;
 	public void start(Stage primaryStage) {
+
+		//Set message logging file
+
+		String FileOutPath = "Log.txt";
+		file = new File(FileOutPath);
+
+		//Keeping append as 'true' will not erase the data of previous sessions
+
+		LogData("SESSION BEGINS: " +
+				java.time.LocalDateTime.now(), true
+		);
+
 		//Set up server UI
-		
+
 		serverLog = new TextArea();
 		serverLog.setPrefSize(640.0d, 480.0d);
 		
@@ -26,7 +38,13 @@ public class ServerMain extends Application {
 		scrollPane.setMinSize(640.0d, 480.0d);
 		
 		serverLog.autosize();
-		
+
+		primaryStage.setOnCloseRequest(e->{
+			LogData("SESSION ENDS: " +
+					java.time.LocalDateTime.now(), true
+			);
+		});
+
 		Scene scene = new Scene(scrollPane);
 		primaryStage.setScene(scene);
 		primaryStage.show();
@@ -39,8 +57,6 @@ public class ServerMain extends Application {
 		new Thread( () -> {
 			try {
 				ServerSocket serverSocket = new ServerSocket(8000);
-				
-				
 				
 				while (true) {
 					//Accept an incoming TCP connection
@@ -66,6 +82,23 @@ public class ServerMain extends Application {
 	//
 	//	Methods
 	//
+	private void LogData(String data, boolean append)
+	{
+		FileWriter fr = null;
+		try {
+			fr = new FileWriter(file, append);
+			fr.write(data + "\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}finally{
+			try {
+				fr.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public void distributeMessage(String _message) {
 		for (HandleClient client : clients) {
 			client.enqueueMessage(_message);
@@ -119,12 +152,20 @@ public class ServerMain extends Application {
 									name = String.join(name, tokens[i]);
 								}
 								if (!username.equals("")) {
-									username = name;		
+									username = name;
+
+									LogData(" -> " + username + " JOINED: " +
+											java.time.LocalDateTime.now(), true
+									);
 								}
 							} else {
 								//Recieved a normal chat message.
 								//Distribute it. (message format is "username: message")
 								server.distributeMessage(String.format("%s: %s\r\n", username, message));
+
+								LogData(java.time.LocalDateTime.now() +
+										": " + username + ": " + message, true
+								);
 							}
 						} catch (IOException e) {
 							//Print error and break from loop (to end this recieve message thread)
