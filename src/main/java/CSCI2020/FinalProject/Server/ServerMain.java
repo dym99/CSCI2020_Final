@@ -263,10 +263,6 @@ public class ServerMain extends Application {
 							//                               //
 							//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
 
-							LogData(" -> USER DISCONNECTED: " + username + ": " + socket.getRemoteSocketAddress().toString() + ", " +
-									java.time.LocalDateTime.now(), true
-							);
-
 							TerminateThread = true;
 
 							Platform.runLater(()-> {
@@ -301,6 +297,11 @@ public class ServerMain extends Application {
 							}
 
 							distributeMessage("/removeUser@" + activeUser.socketIP);
+
+							LogData(" -> USER DISCONNECTED: " + username + ": " + socket.getRemoteSocketAddress().toString() + ", " +
+									java.time.LocalDateTime.now(), true
+							);
+
 							break;
 						}
 					}
