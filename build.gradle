@@ -23,4 +23,7 @@ sourceSets {
         }
 }
 
-mainClassName = 'CSCI2020.FinalProject.MainClass'
+mainClassName = 'CSCI2020.FinalProject.Client.MainClass'
+if (project.hasProperty('server')) {
+	mainClassName = 'CSCI2020.FinalProject.Server.ServerMain'
+}

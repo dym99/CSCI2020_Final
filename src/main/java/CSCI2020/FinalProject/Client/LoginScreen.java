@@ -1,4 +1,4 @@
-package CSCI2020.FinalProject;
+package CSCI2020.FinalProject.Client;
 
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -32,9 +32,23 @@ public class LoginScreen {
 		loginButton = new Button("Login");
 		
 		loginButton.setOnAction(e -> {
-			//TODO: Login
-			nextScene.setUsername(usernameField.getText());
-			stage.setScene(nextScene.getScene());
+			//Verify username field
+			String username = usernameField.getText();
+			if (!username.matches("^[a-zA-Z0-9 ]*$")) {
+				//Username is bad.
+				//TODO: Feedback for bad username (only letters and numbers, no special characters)
+			} else {
+				//Connect to specified address
+				if (ClientNetworking.Connect(serverAddressField.getText(), 8000)) {
+					//Connected. Go to next scene.
+					nextScene.setUsername(username);
+					stage.setScene(nextScene.getScene());
+					
+				} else {
+					//Connection failed.
+				}
+			
+			}
 		});
 		
 		//Add all the form elements to the grid pane.

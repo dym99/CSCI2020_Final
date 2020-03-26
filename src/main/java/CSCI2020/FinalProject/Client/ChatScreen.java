@@ -1,4 +1,4 @@
-package CSCI2020.FinalProject;
+package CSCI2020.FinalProject.Client;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -47,12 +47,8 @@ public class ChatScreen {
 
 			if (e.getCode().equals(KeyCode.ENTER))
 			{
-				atBottom = true;
-				if (sp.getVvalue() < 1 && chatBox.getHeight() >= sp.getHeight())
-					atBottom = false;
-
-				chatBox.getChildren().add(new Text(getUsername() + ": " + inputText.getText()));
-
+				ClientNetworking.Send(inputText.getText());
+				
 				inputText.clear();
 
 
@@ -64,6 +60,26 @@ public class ChatScreen {
 
 		//Initialise the scene
 		m_scene = new Scene(root);
+		
+		//Thread to recieve all incoming messages.
+		new Thread(()->{
+			while (true) {
+				//Recieve incoming messages
+				String message = ClientNetworking.Recv();
+				
+				//If message is recieved successfully...
+				if (!message.equals("")) {
+					//Print it.
+
+					atBottom = true;
+					if (sp.getVvalue() < 1 && chatBox.getHeight() >= sp.getHeight())
+						atBottom = false;
+
+					chatBox.getChildren().add(new Text(message));
+
+				}
+			}
+		});
 	}
 
 	//Getter for the scene for the chat screen
@@ -75,6 +91,7 @@ public class ChatScreen {
 	//Getter and setter for username
 	public void setUsername(String _username) {
 		username = _username;
+		ClientNetworking.Send(String.format("/name %s", _username));
 	}
 	public String getUsername() {
 		return username;
