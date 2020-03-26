@@ -13,6 +13,8 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -24,6 +26,9 @@ public class ServerMain extends Application {
 	}
 
 	File file;
+	VBox userBox;
+	VBox allUsers;
+
 	public void start(Stage primaryStage) {
 
 		//Set message logging file
@@ -40,13 +45,25 @@ public class ServerMain extends Application {
 		//Set up server UI
 
 		//Root node
-		VBox root = new VBox();
+		HBox root = new HBox();
+		VBox serverOutput = new VBox();
+		root.getChildren().add(serverOutput);
 
 		//Scroll pane for viewing chat log
 		ScrollPane scrollPane = new ScrollPane();
 		scrollPane.setPrefSize(600, 480);
 
-		root.getChildren().add(scrollPane);
+		serverOutput.getChildren().add(scrollPane);
+
+		//Scroll pane for online users
+		ScrollPane userList = new ScrollPane();
+		userList.setPrefWidth(200);
+		userBox = new VBox();
+		allUsers = new VBox();
+		userBox.getChildren().add(new Text("ACTIVE USERS: "));
+		userBox.getChildren().add(allUsers);
+		userList.setContent(userBox);
+		root.getChildren().add(userList);
 
 		serverLog = new VBox();
 		scrollPane.setContent(serverLog);
@@ -94,10 +111,10 @@ public class ServerMain extends Application {
 	                });
 					
 					//Add client to client list and begin processing socket I/O
-					HandleClient client = new HandleClient(clientSocket, this);
+					HandleClient client = new HandleClient(clientSocket, this, allUsers);
 					clients.add(client);
 
-					LogData(" -> USER CONNECTED: " + clientSocket.getRemoteSocketAddress().toString() +
+					LogData(" -> USER CONNECTED: " + clientSocket.getRemoteSocketAddress().toString() + ", " +
 							java.time.LocalDateTime.now(), true
 					);
 
@@ -165,11 +182,12 @@ public class ServerMain extends Application {
 	//
 	class HandleClient implements Runnable {
 		//Store a reference to the client's socket.
-		public HandleClient(Socket _socket, ServerMain _server) {
+		public HandleClient(Socket _socket, ServerMain _server, VBox users) {
 			username = "";
 			socket = _socket;
 			server = _server;
 			messagesToSend = new LinkedList<String>();
+			activeUser = new ActiveUser(users, username);
 		}
 		
 		//Serve the client
@@ -207,6 +225,7 @@ public class ServerMain extends Application {
 
 									username = name;
 
+									activeUser.UpdateUsername(name);
 								}
 							} else {
 
@@ -228,11 +247,34 @@ public class ServerMain extends Application {
 							//                               //
 							//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
 
+							LogData(" -> USER DISCONNECTED: " + username + ": " + socket.getRemoteSocketAddress().toString() + ", " +
+									java.time.LocalDateTime.now(), true
+							);
+
+							TerminateThread = true;
+
+							Platform.runLater(()-> {
+								clients.remove(this);
+								activeUser.Cleanup();
+							});
+
 							break;
 						} catch (IOException e) {
 							//Print error and break from loop (to end this recieve message thread)
 							System.out.println("Sock error on recieve!\n");
 							e.printStackTrace();
+							break;
+						}
+
+						if (TerminateThread)
+						{
+							try {
+								socket.close();
+								inputFromClient.close();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+
 							break;
 						}
 					}
@@ -273,6 +315,17 @@ public class ServerMain extends Application {
 						} else {
 							System.out.print("");
 						}
+
+						if (TerminateThread)
+						{
+							try {
+								outputToClient.close();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+
+							break;
+						}
 					}
 				}).start();
 				
@@ -306,7 +359,11 @@ public class ServerMain extends Application {
 		
 		//This client's current username
 		private String username;
-		
+
+		//User's graphical representation
+		private ActiveUser activeUser;
+
+		private boolean TerminateThread = false;
 	}
 	
 }
