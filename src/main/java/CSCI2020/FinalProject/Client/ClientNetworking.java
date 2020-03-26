@@ -57,21 +57,20 @@ public class ClientNetworking {
 				System.out.println("Server has kicked you!");
 
 				Platform.runLater(()->{
-					chatScreen.disconnectClient();
+					chatScreen.disconnectClient("The connection was forcibly closed by the remote host.");
 				});
 
 				return "";
 			} catch (EOFException e) {
 				System.out.println("Server is not responding.");
 				Platform.runLater(()->{
-					chatScreen.disconnectClient();
+					chatScreen.disconnectClient("The server stopped responding.");
 				});
 				return "";
 			} catch (IOException e) {
 				e.printStackTrace();
-				System.out.println("No message");
 				Platform.runLater(()->{
-					chatScreen.disconnectClient();
+					chatScreen.disconnectClient("An unknown error has occored.");
 				});
 				return "";
 			}

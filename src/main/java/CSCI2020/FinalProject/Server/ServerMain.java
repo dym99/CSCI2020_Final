@@ -30,9 +30,10 @@ public class ServerMain extends Application {
 	VBox allUsers;
 
 	public void start(Stage primaryStage) {
-
+		//Load the blacklist file
+		ServerBlacklist.ReloadBlacklist();
+		
 		//Set message logging file
-
 		String FileOutPath = "Log.txt";
 		file = new File(FileOutPath);
 
@@ -103,6 +104,12 @@ public class ServerMain extends Application {
 				while (true) {
 					//Accept an incoming TCP connection
 					Socket clientSocket = serverSocket.accept();
+					
+					//If the connected client is blacklisted, terminate the connection, and keep listening.
+					if (ServerBlacklist.IsBlacklisted(clientSocket.getRemoteSocketAddress().toString())) {
+						clientSocket.close();
+						continue;
+					}
 
 					Platform.runLater( () -> {
 						serverLog.getChildren().add(new Text(
@@ -149,7 +156,8 @@ public class ServerMain extends Application {
 			}
 		}
 	}
-
+	
+	//Send message to all connected clients
 	public void distributeMessage(String _message) {
 
 		Platform.runLater(()->{

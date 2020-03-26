@@ -55,7 +55,7 @@ public class ChatScreen {
 		Button backButton = new Button("Log out");
 
 		backButton.setOnAction(e->{
-			disconnectClient();
+			disconnectClient("");
 		});
 
 		mainChat.getChildren().add(sp);
@@ -176,7 +176,7 @@ public class ChatScreen {
 	}
 
 	//Disconnection function
-	public void disconnectClient()
+	public void disconnectClient(String _message)
 	{
 		//Disconnect the socket.
 		ClientNetworking.Disconnect();
@@ -198,6 +198,8 @@ public class ChatScreen {
 			stage.setScene(loginScreen.getScene());
 		}
 		
+		//Display error message
+		loginScreen.showFormErrorMessage(_message);
 	}
 	
 	//Getter for the scene for the chat screen
