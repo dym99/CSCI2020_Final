@@ -16,11 +16,13 @@ public class MainClass extends Application {
 		//Store a static reference to the chat screen
 		ClientNetworking.SetChatScreen(chatScreen);
 		
+		//Shut down all the threads
 		primaryStage.setOnCloseRequest(e-> {
 			System.out.println("Trying to shut down...");
 			ChatScreen.ShutDown();
 		});
 
+		//Set the starting scene, and show the window.
 		primaryStage.setScene(loginScreen.getScene());
 		primaryStage.show();
 	}
