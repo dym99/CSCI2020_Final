@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -24,6 +25,12 @@ public class ChatScreen {
 		//Scroll pane for viewing chat log
 		sp = new ScrollPane();
 		sp.setPrefSize(600, chatHeight);
+
+		Button backButton = new Button("Back To Login");
+
+		backButton.setOnAction(e->{
+			//Return to main menu logic
+		});
 
 		root.getChildren().add(sp);
 
@@ -63,6 +70,8 @@ public class ChatScreen {
 
 		root.getChildren().add(inputText);
 
+		root.getChildren().add(backButton);
+
 		//Initialise the scene
 		m_scene = new Scene(root);
 		
@@ -93,6 +102,12 @@ public class ChatScreen {
 				}
 			}
 		}).start();
+	}
+
+	//Disconnection function
+	public static void DisconnectClient()
+	{
+		//Handle any disconnection logic here.
 	}
 	
 	//Getter for the scene for the chat screen

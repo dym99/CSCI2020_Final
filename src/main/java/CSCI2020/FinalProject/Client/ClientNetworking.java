@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class ClientNetworking {
 	public static boolean Connect(String address, int port) {
@@ -37,6 +38,12 @@ public class ClientNetworking {
 				String message = fromServer.readUTF();
 				System.out.println(message);
 				return message;
+			} catch (SocketException se) {
+				System.out.println("Server has kicked you!");
+
+				ChatScreen.DisconnectClient();
+
+				return "";
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("No message");
