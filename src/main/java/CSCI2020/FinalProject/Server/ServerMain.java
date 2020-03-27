@@ -126,6 +126,7 @@ public class ServerMain extends Application {
 					LogData(" -> USER CONNECTED: " + clientSocket.getRemoteSocketAddress().toString() + ", " +
 							java.time.LocalDateTime.now(), true
 					);
+					
 
 					new Thread(client).start();
 				}
@@ -241,6 +242,26 @@ public class ServerMain extends Application {
 								}
 								
 								if (!name.equals("")) {
+									//Prevent duplicate names by appending a 1 until the name is unique
+									boolean nameDirty = false;
+									do {
+										nameDirty = false;
+										for (HandleClient client : server.clients) {
+											if (name.equals(client.getUsername())) {
+												name = name + "1";
+												nameDirty = true;
+											}
+										}
+									} while (nameDirty);
+									
+									//Write the chat message for either
+									//the initial join (where the username is actually set)
+									//or a name change.
+									if (username.equals("")) {
+										distributeMessage(String.format("'%s' has joined the chat.", name));
+									} else {
+										distributeMessage(String.format("'%s' has changed their name to '%s'", username, name));
+									}
 									LogData(" -> USER '" + username + "' RENAMED TO '" + name + "'" +
 											java.time.LocalDateTime.now(), true
 									);

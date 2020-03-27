@@ -1,13 +1,14 @@
 package CSCI2020.FinalProject.Server;
 
 import javafx.application.Platform;
-import javafx.scene.Node;
-import javafx.scene.control.ScrollPane;
+import javafx.geometry.Insets;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-
-import java.awt.*;
 
 public class ActiveUser {
     VBox userBox;
@@ -25,6 +26,9 @@ public class ActiveUser {
         username = new Text();
         userBox = new VBox();
 
+        username.setFill(Color.ANTIQUEWHITE);
+        userBox.setBackground(new Background(new BackgroundFill(new Color(0.1d, 0.12d, 0.15d, 1.0d), CornerRadii.EMPTY, Insets.EMPTY)));
+        
         userBox.getChildren().add(username);
 
         UpdateUsername(name);

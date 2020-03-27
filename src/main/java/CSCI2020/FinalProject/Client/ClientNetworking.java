@@ -57,7 +57,7 @@ public class ClientNetworking {
 				System.out.println("Server has kicked you!");
 
 				Platform.runLater(()->{
-					chatScreen.disconnectClient("The connection was forcibly closed by the remote host.");
+					chatScreen.disconnectClient("The connection was forcibly closed.");
 				});
 
 				return "";

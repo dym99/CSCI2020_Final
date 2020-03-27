@@ -24,6 +24,7 @@ public class MainClass extends Application {
 
 		//Set the starting scene, and show the window.
 		primaryStage.setScene(loginScreen.getScene());
+		primaryStage.setResizable(false);
 		primaryStage.show();
 	}
 }

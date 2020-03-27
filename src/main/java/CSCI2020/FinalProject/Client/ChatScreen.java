@@ -1,20 +1,28 @@
 package CSCI2020.FinalProject.Client;
 
+import java.util.ArrayList;
+
 import CSCI2020.FinalProject.Server.ActiveUser;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-
-import java.util.ArrayList;
 
 public class ChatScreen {
 	VBox userBox;
@@ -32,27 +40,41 @@ public class ChatScreen {
 		stage = _stage;
 		
 		//Root node
-		HBox root = new HBox();
+		VBox root = new VBox();
+		FlowPane fPane = new FlowPane();
+		
+		HBox hBox = new HBox();
 		VBox mainChat = new VBox();
-		root.getChildren().add(mainChat);
+		hBox.getChildren().add(mainChat);
 
 		//Scroll pane for viewing users
 		ScrollPane userList = new ScrollPane();
 		userList.setPrefWidth(200);
 		userBox = new VBox();
 		allUsers = new VBox();
-		userBox.getChildren().add(new Text("ACTIVE USERS: "));
+		
+		Text activeUserLabel = new Text("ACTIVE USERS: ");
+		activeUserLabel.setFill(Color.ANTIQUEWHITE);
+		activeUserLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12.0d));
+		
+		
+		userBox.getChildren().add(activeUserLabel);
 		userBox.getChildren().add(allUsers);
 		userList.setContent(userBox);
-		root.getChildren().add(userList);
+		hBox.getChildren().add(userList);
 
 		activeUsers = new ArrayList<>();
 
 		//Scroll pane for viewing chat log
 		sp = new ScrollPane();
 		sp.setPrefSize(600, chatHeight);
+		sp.setFitToHeight(true);
+		sp.setFitToWidth(true);
+		
 
-		Button backButton = new Button("Log out");
+		Button backButton = new Button("< Log Out");
+		backButton.setBackground(new Background(new BackgroundFill(Color.DARKRED, new CornerRadii(4.0d), new Insets(0.0d))));
+		backButton.setTextFill(Color.ANTIQUEWHITE);
 
 		backButton.setOnAction(e->{
 			disconnectClient("");
@@ -61,7 +83,7 @@ public class ChatScreen {
 		mainChat.getChildren().add(sp);
 
 		chatBox = new VBox();
-		sp.setContent(chatBox);
+		//sp.setContent(chatBox);
 
 		//If the scroll pane is at the bottom when a message is added, keep it at the bottom. 
 		chatBox.heightProperty().addListener(new ChangeListener<Object>() {
@@ -96,12 +118,32 @@ public class ChatScreen {
 
 		mainChat.getChildren().add(inputText);
 
-		mainChat.getChildren().add(backButton);
+		fPane.getChildren().add(backButton);
 
+		root.getChildren().add(fPane);
+		root.getChildren().add(hBox);
+		
 		//Initialise the scene
 		scene = new Scene(root);
 		
+		//Adjust scene styles.
+		Background mainBG = new Background(new BackgroundFill(new Color(0.14d, 0.16d, 0.20d, 1.0d), CornerRadii.EMPTY, Insets.EMPTY));
+		Background mainBGDarker = new Background(new BackgroundFill(new Color(0.1d, 0.12d, 0.15d, 1.0d), CornerRadii.EMPTY, Insets.EMPTY));
+
+		chatBox.setBackground(mainBG);
+		sp.setBackground(mainBG);
+		sp.setContent(chatBox);
 		
+		fPane.setBackground(mainBG);
+		mainChat.setBackground(mainBG);
+		hBox.setBackground(mainBG);
+		root.setBackground(mainBG);
+		
+		allUsers.setBackground(mainBGDarker);
+		userBox.setBackground(mainBGDarker);
+		userList.setBackground(mainBGDarker);
+		userList.setFitToHeight(true);
+		userList.setFitToWidth(true);
 	}
 
 	
@@ -162,7 +204,9 @@ public class ChatScreen {
 							atBottom = false;
 						}
 						Platform.runLater(() -> {
-							chatBox.getChildren().add(new Text(message));
+							Text text = new Text(message);
+							text.setFill(Color.ANTIQUEWHITE);
+							chatBox.getChildren().add(text);
 						});
 					}
 				}
