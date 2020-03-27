@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class ServerBlacklist {
+	//Updates the blacklist based off of the "Blacklist.txt" file.
+	//Each line is a single IP (or single partial IP)
 	public static void ReloadBlacklist() {
 		//Empty the blacklist
 		blacklist.clear();
@@ -27,6 +29,7 @@ public class ServerBlacklist {
 		}
 	}
 	
+	//Returns true if the ip matches a blacklisted ip.
 	public static boolean IsBlacklisted(String _address) {
 		System.out.println(String.format("Searching blacklist for '%s'", _address));
 		for (String s : blacklist) {

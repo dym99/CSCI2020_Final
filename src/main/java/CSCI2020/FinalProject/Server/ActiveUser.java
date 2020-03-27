@@ -11,39 +11,51 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
 public class ActiveUser {
+	//Container for the client list item
     VBox userBox;
 
+    //The client list item
     Text username;
 
+    //The parent container for the item.
     Pane parent;
 
+    //A string representation of this client's address. Format: ("/<ip>:<port>") 
     String socketIP;
 
-    public ActiveUser(Pane _parent, String name, String sockAddr)
+    public ActiveUser(Pane _parent, String name, String sockAddr, boolean darkMode)
     {
+    	//Store info related to specific client.
         socketIP = sockAddr;
 
+        //Set up item to add to parent.
         username = new Text();
         userBox = new VBox();
 
-        username.setFill(Color.ANTIQUEWHITE);
-        userBox.setBackground(new Background(new BackgroundFill(new Color(0.1d, 0.12d, 0.15d, 1.0d), CornerRadii.EMPTY, Insets.EMPTY)));
+        //Styles for the client
+        if (darkMode) {
+	        username.setFill(Color.ANTIQUEWHITE);
+	        userBox.setBackground(new Background(new BackgroundFill(new Color(0.1d, 0.12d, 0.15d, 1.0d), CornerRadii.EMPTY, Insets.EMPTY)));
+        }
         
         userBox.getChildren().add(username);
 
         UpdateUsername(name);
 
+        //Add the item to the specified parent.
         parent = _parent;
         Platform.runLater( () -> {
             parent.getChildren().add(userBox);
         });
     }
 
+    //Get a string representation of the client (Format: "/<ip>:<port>"
     public String GetSocketIP()
     {
         return socketIP;
     }
 
+    //Get the username of this client.
     public void UpdateUsername(String name)
     {
         Platform.runLater( () -> {
@@ -51,7 +63,8 @@ public class ActiveUser {
         });
     }
 
-    public void Cleanup() //pseudo destructor
+    //Remove this from the parent node.
+    public void Cleanup()
     {
         Platform.runLater( () -> {
             parent.getChildren().remove(userBox);

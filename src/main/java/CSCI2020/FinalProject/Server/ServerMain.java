@@ -1,6 +1,10 @@
 package CSCI2020.FinalProject.Server;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -14,7 +18,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -61,7 +64,7 @@ public class ServerMain extends Application {
 		userList.setPrefWidth(200);
 		userBox = new VBox();
 		allUsers = new VBox();
-		userBox.getChildren().add(new Text("ACTIVE USERS: "));
+		userBox.getChildren().add(new Text("Connected Clients: "));
 		userBox.getChildren().add(allUsers);
 		userList.setContent(userBox);
 		root.getChildren().add(userList);
@@ -79,7 +82,8 @@ public class ServerMain extends Application {
 			}
 		});
 
-
+		//Callback for when the application is closed.
+		//Ensures all the threads started are killed when a user closes the window.
 		primaryStage.setOnCloseRequest(e->{
 			LogData("SESSION ENDS: " +
 					java.time.LocalDateTime.now(), true
@@ -88,19 +92,22 @@ public class ServerMain extends Application {
 			ShutDown();
 		});
 
+		//Set up the scene
 		Scene scene = new Scene(root);
 		primaryStage.setScene(scene);
 		primaryStage.show();
 
+		
 		serverLog.getChildren().add(new Text("Starting server..."));
 		
 		clients = new ArrayList<HandleClient>();
 		
 		//Start server netcode on new thread.
 		new Thread( () -> {
+			ServerSocket serverSocket = null;
 			try {
-				ServerSocket serverSocket = new ServerSocket(8000);
-				
+				serverSocket = new ServerSocket(8000);
+
 				while (true) {
 					//Accept an incoming TCP connection
 					Socket clientSocket = serverSocket.accept();
@@ -127,13 +134,18 @@ public class ServerMain extends Application {
 							java.time.LocalDateTime.now(), true
 					);
 					
-
+					//Start a thread to handle all socket I/O for the client. 
 					new Thread(client).start();
 				}
-				
 			} catch (IOException e) {
 				serverLog.getChildren().add(new Text("Failed to start server!\n"));
 				e.printStackTrace();
+			} finally {
+				try {
+					serverSocket.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 			}
 		}).start();
 	}
@@ -141,6 +153,8 @@ public class ServerMain extends Application {
 	//
 	//	Methods
 	//
+	
+	//Write to the log file (Log.txt)
 	private void LogData(String data, boolean append)
 	{
 		FileWriter fr = null;
@@ -189,7 +203,7 @@ public class ServerMain extends Application {
 	ArrayList<HandleClient> clients;
 	
 	//
-	//	All code for communicating with client handled by inner class
+	//	All code for communicating with client (all socket I/O) handled by inner class
 	//
 	class HandleClient implements Runnable {
 		//Store a reference to the client's socket.
@@ -198,7 +212,7 @@ public class ServerMain extends Application {
 			socket = _socket;
 			server = _server;
 			messagesToSend = new LinkedList<String>();
-			activeUser = new ActiveUser(users, username, _socket.getRemoteSocketAddress().toString());
+			activeUser = new ActiveUser(users, username, _socket.getRemoteSocketAddress().toString(), false);
 		}
 		
 		//Serve the client
@@ -241,36 +255,42 @@ public class ServerMain extends Application {
 									name = String.join(name, tokens[i]);
 								}
 								
+								//Make sure the name isn't nothing.
 								if (!name.equals("")) {
-									//Prevent duplicate names by appending a 1 until the name is unique
-									boolean nameDirty = false;
-									do {
-										nameDirty = false;
-										for (HandleClient client : server.clients) {
-											if (name.equals(client.getUsername())) {
-												name = name + "1";
-												nameDirty = true;
-											}
-										}
-									} while (nameDirty);
-									
-									//Write the chat message for either
-									//the initial join (where the username is actually set)
-									//or a name change.
-									if (username.equals("")) {
-										distributeMessage(String.format("'%s' has joined the chat.", name));
+									if (!name.matches("^[a-zA-Z0-9]*$")) {
+										//Tell the client that the username is bad.
+										outputToClient.writeUTF("New username must consist of only letters and numbers.");
 									} else {
-										distributeMessage(String.format("'%s' has changed their name to '%s'", username, name));
+										//Prevent duplicate names by appending a 1 until the name is unique
+										boolean nameDirty = false;
+										do {
+											nameDirty = false;
+											for (HandleClient client : server.clients) {
+												if (name.equals(client.getUsername())) {
+													name = name + "1";
+													nameDirty = true;
+												}
+											}
+										} while (nameDirty);
+										
+										//Write the chat message for either
+										//the initial join (where the username is actually set)
+										//or a name change.
+										if (username.equals("")) {
+											distributeMessage(String.format("'%s' has joined the chat.", name));
+										} else {
+											distributeMessage(String.format("'%s' has changed their name to '%s'", username, name));
+										}
+										LogData(" -> USER '" + username + "' RENAMED TO '" + name + "'" +
+												java.time.LocalDateTime.now(), true
+										);
+	
+										username = name;
+	
+										activeUser.UpdateUsername(name);
+	
+										distributeMessage("/updateUser@" + activeUser.socketIP + "@" + username);
 									}
-									LogData(" -> USER '" + username + "' RENAMED TO '" + name + "'" +
-											java.time.LocalDateTime.now(), true
-									);
-
-									username = name;
-
-									activeUser.UpdateUsername(name);
-
-									distributeMessage("/updateUser@" + activeUser.socketIP + "@" + username);
 								}
 							} else if (!message.startsWith("/")){
 
@@ -286,36 +306,29 @@ public class ServerMain extends Application {
 							//Peaceful disconnection
 							System.out.println("Client disconnection!\n");
 
-							//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
-							//                               //
-							//ANY CLIENT DISCONNECTS GO HERE!//
-							//                               //
-							//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
-
 							TerminateThread = true;
 
+							//Remove this client from the list of active clients.
 							Platform.runLater(()-> {
 								clients.remove(this);
 								activeUser.Cleanup();
 							});
-
-							//break;
-
-
+							
 						} catch (IOException e) {
-							//Print error and break from loop (to end this recieve message thread)
-							System.out.println("Sock error on recieve!\nClient disconnected.");
-
+							//Client is not responding.
+							System.out.println("Client not responding!\nClient forcefully disconnected.");
+							
 							TerminateThread = true;
 							
+							//Remove this client from the list of active clients.
 							Platform.runLater(()-> {
 								clients.remove(this);
 								activeUser.Cleanup();
 							});
 
-							//break;
 						}
 
+						//Clean up the thread and end it.
 						if (TerminateThread)
 						{
 							try {
@@ -324,9 +337,13 @@ public class ServerMain extends Application {
 							} catch (IOException e) {
 								e.printStackTrace();
 							}
-
+							
+							//Removes the client from the active client list on all clients.
 							distributeMessage("/removeUser@" + activeUser.socketIP);
-
+							
+							//Prints a message to the chat that displays that this client has disconnected.
+							distributeMessage(String.format("'%s' has disconnected from the chat.", username));
+							
 							LogData(" -> USER DISCONNECTED: " + username + ": " + socket.getRemoteSocketAddress().toString() + ", " +
 									java.time.LocalDateTime.now(), true
 							);
@@ -352,13 +369,12 @@ public class ServerMain extends Application {
 								try {
 									outputToClient.writeUTF(message);
 									outputToClient.flush();
-
+									
 									Platform.runLater(()->{
 										serverLog.getChildren().add(new Text("Sent message."));
 									});
 								} catch (IOException e) {
 									//Print error and break from loop (to end this send message thread)
-
 									Platform.runLater(()->{
 										serverLog.getChildren().add(new Text("Sock error on send!"));
 									});
@@ -372,6 +388,7 @@ public class ServerMain extends Application {
 							System.out.print("");
 						}
 
+						//Clean up and end the thread.
 						if (TerminateThread)
 						{
 							try {
@@ -419,6 +436,7 @@ public class ServerMain extends Application {
 		//User's graphical representation
 		private ActiveUser activeUser;
 
+		//Whether or not the threads need to die.
 		private boolean TerminateThread = false;
 	}
 	

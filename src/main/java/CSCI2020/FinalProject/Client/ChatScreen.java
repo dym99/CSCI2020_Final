@@ -53,7 +53,7 @@ public class ChatScreen {
 		userBox = new VBox();
 		allUsers = new VBox();
 		
-		Text activeUserLabel = new Text("ACTIVE USERS: ");
+		Text activeUserLabel = new Text("ONLINE: ");
 		activeUserLabel.setFill(Color.ANTIQUEWHITE);
 		activeUserLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12.0d));
 		
@@ -157,20 +157,16 @@ public class ChatScreen {
 				
 				//If message is recieved successfully...
 				if (!message.equals("")) {
-					//If the message is conveying that the server disconnected you:
-					if (message.equals("/disconnect")) {
-						
-					}
-
-					else if (message.startsWith("/includeUsers"))
+					//Message from the server regarding a new active client.
+					if (message.startsWith("/includeUsers"))
 					{
 						String[] split = message.split("@");
 						for (int i = 1; i < split.length; i += 2)
 						{
-							activeUsers.add(new ActiveUser(allUsers, split[i + 1], split[i]));
+							activeUsers.add(new ActiveUser(allUsers, split[i + 1], split[i], true));
 						}
 					}
-
+					//Message from the server regarding a change in a username.
 					else if (message.startsWith("/updateUser"))
 					{
 						String[] split = message.split("@");
@@ -183,7 +179,7 @@ public class ChatScreen {
 							}
 						}
 					}
-
+					//Message from the server regarding a user that left the chat.
 					else if (message.startsWith("/removeUser"))
 					{
 						String[] split = message.split("@");
@@ -196,7 +192,7 @@ public class ChatScreen {
 							}
 						}
 					}
-
+					//Regular chat message.
 					else if (!message.startsWith("/")) {
 						//Update the chat text box's status and print the message.
 						atBottom = true;
